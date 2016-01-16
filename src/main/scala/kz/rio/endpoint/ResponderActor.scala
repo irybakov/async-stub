@@ -1,7 +1,10 @@
 package kz.rio.endpoint
 
+import java.util.concurrent.TimeUnit
+
 import akka.actor.{Props, ActorRef, ActorLogging, Actor}
 import com.github.sstone.amqp.Amqp.Publish
+import com.github.sstone.amqp.{Amqp, ChannelOwner, ConnectionOwner}
 import kz.rio.core.ServiceActor
 
 /**
@@ -9,11 +12,18 @@ import kz.rio.core.ServiceActor
  */
 
 object ResponderActor {
-  def props(producer: ActorRef): Props =  Props(classOf[ResponderActor],producer)
+
+  def props(amqpConnection: ActorRef): Props =  Props(classOf[ResponderActor],amqpConnection)
+
 }
 
 
-class ResponderActor(producer: ActorRef) extends Actor with ActorLogging {
+class ResponderActor(amqpConnection: ActorRef) extends Actor with ActorLogging {
+
+  import context._
+
+  val producer = ConnectionOwner.createChildActor(amqpConnection, ChannelOwner.props())
+  Amqp.waitForConnection(system, amqpConnection, producer).await(5, TimeUnit.SECONDS)
 
   override def receive = {
     case ServiceActor.Pong(pong) => producer ! Publish("amq.topic", "pong.replay", pong.getBytes, properties = None, mandatory = true, immediate = false)

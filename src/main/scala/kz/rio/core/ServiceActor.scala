@@ -2,6 +2,7 @@ package kz.rio.core
 
 import akka.actor.{Props, ActorRef, Actor, ActorLogging}
 import kz.rio.core.ServiceActor.{Pong, Echo, Ping}
+import kz.rio.domain.DomainMessage
 
 /**
  * Created by irybakov on 1/12/16.
@@ -9,9 +10,9 @@ import kz.rio.core.ServiceActor.{Pong, Echo, Ping}
 
 object ServiceActor {
 
-  case class Ping(ping: String)
-  case class Pong(pong: String)
-  case class Echo(echo: String)
+  case class Ping(ping: String) extends DomainMessage
+  case class Pong(pong: String) extends DomainMessage
+  case class Echo(echo: String) extends DomainMessage
 
   def props(responder: ActorRef): Props =  Props(classOf[ServiceActor],responder)
 }
