@@ -9,10 +9,10 @@ FROM java:8
 
 MAINTAINER Igor Rybakov <igor@rybakov.kz>
 
-ENV APP_NAME async-api-1.0.zip
-ENV APP_DIR async-api-1.0
+ENV APP_NAME async-stub-1.0.zip
+ENV APP_DIR async-stub-1.0
 ENV JAVA_OPTS -Xms128M -Xmx512M -Xss1M -XX:+CMSClassUnloadingEnabled
-ENV RUN_SCRIPT async-api
+ENV RUN_SCRIPT async-stub
 
 # configs
 RUN mkdir -p /root/config/
