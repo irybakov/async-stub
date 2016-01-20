@@ -5,4 +5,8 @@ package kz.rio.domain
  */
 trait DomainMessage
 
+case class Ping(ping: String) extends DomainMessage
+case class Pong(pong: String) extends DomainMessage
+case class Echo(echo: String) extends DomainMessage
+
 

@@ -4,10 +4,8 @@ import akka.actor.{Props, ActorRef, ActorLogging, Actor}
 import com.github.sstone.amqp.Amqp._
 import com.github.sstone.amqp.{Amqp, Consumer, ConnectionOwner}
 import kz.rio.core.ServiceActor
-import kz.rio.domain.DomainMessage
+import kz.rio.domain.{Echo, Ping, DomainMessage}
 import org.json4s._
-import org.json4s.NoTypeHints
-import org.json4s.native.Serialization.{read, write}
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization
 
@@ -22,10 +20,10 @@ class ListenerActor(amqpConnection: ActorRef, responder: ActorRef) extends Actor
 
   import context._
 
-  implicit val formats = Serialization.formats(ShortTypeHints(List(classOf[ServiceActor.Ping],classOf[ServiceActor.Echo])))
+  implicit val formats = Serialization.formats(ShortTypeHints(List(classOf[Ping],classOf[Echo])))
 
   // create a consumer that will route incoming AMQP messages to our listener
-  val queueParams = QueueParameters("request.queue", passive = false, durable = false, exclusive = false, autodelete = true)
+  val queueParams = QueueParameters("request.queue", passive = false, durable = false, exclusive = false, autodelete = false)
   val consumer = ConnectionOwner.createChildActor(amqpConnection, Consumer.props(Some(self)))
 
   // wait till everyone is actually connected to the broker
@@ -42,13 +40,13 @@ class ListenerActor(amqpConnection: ActorRef, responder: ActorRef) extends Actor
   }
 
   override def receive = {
-    case Delivery(consumerTag, envelope, properties, body) => {
+    case d @ Delivery(consumerTag, envelope, properties, body) => {
       val msgBody = new String(body)
       println("got a message: " + msgBody)
 
       val command = parseCommand(msgBody)
 
-      val service = system.actorOf(ServiceActor.props(responder))
+      val service = system.actorOf(ServiceActor.props(responder,d.properties.getCorrelationId()))
       service ! command
 
       sender ! Ack(envelope.getDeliveryTag)

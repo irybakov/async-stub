@@ -1,8 +1,8 @@
 package kz.rio.core
 
 import akka.actor.{Props, ActorRef, Actor, ActorLogging}
-import kz.rio.core.ServiceActor.{Pong, Echo, Ping}
-import kz.rio.domain.DomainMessage
+import kz.rio.domain.{Echo, Pong, Ping, DomainMessage}
+import kz.rio.endpoint.ResponderActor
 
 /**
  * Created by irybakov on 1/12/16.
@@ -10,22 +10,18 @@ import kz.rio.domain.DomainMessage
 
 object ServiceActor {
 
-  case class Ping(ping: String) extends DomainMessage
-  case class Pong(pong: String) extends DomainMessage
-  case class Echo(echo: String) extends DomainMessage
-
-  def props(responder: ActorRef): Props =  Props(classOf[ServiceActor],responder)
+  def props(responder: ActorRef, correlationId: String): Props =  Props(classOf[ServiceActor],responder, correlationId)
 }
 
 
-class ServiceActor(responder: ActorRef) extends Actor with ActorLogging {
+class ServiceActor(responder: ActorRef,correlationId: String) extends Actor with ActorLogging {
 
   override def receive = {
     case Ping(ping) =>
-      responder ! Pong("PONG: " + ping)
+      responder ! ResponderActor.PublishReplay(correlationId,Pong("PONG: " + ping))
 
     case Echo(echo) =>
-      responder ! Echo(echo)
+      responder ! ResponderActor.PublishReplay(correlationId,Echo(echo))
 
   }
 }
