@@ -1,7 +1,7 @@
 #
-# Scala and sbt Dockerfile
+# async-stub Dockerfile
 #
-# https://github.com/hseeberger/scala-sbt
+#
 #
 
 # Pull base image OpenJDK
@@ -24,6 +24,10 @@ COPY ./src/main/resources/*.conf /root/config/
 WORKDIR /root
 COPY ./target/universal/$APP_NAME /root/
 RUN unzip -q $APP_NAME
+
+# clean zip 
+RUN rm /root/$APP_NAME
+
 WORKDIR /root/$APP_DIR/bin
 CMD chmod +x $RUN_SCRIPT
 EXPOSE 8082
