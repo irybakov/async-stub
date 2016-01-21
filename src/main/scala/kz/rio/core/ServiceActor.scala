@@ -10,18 +10,18 @@ import kz.rio.endpoint.ResponderActor
 
 object ServiceActor {
 
-  def props(responder: ActorRef, correlationId: String): Props =  Props(classOf[ServiceActor],responder, correlationId)
+  def props(responder: ActorRef, correlationId: String,replyTo: String): Props =  Props(classOf[ServiceActor],responder, correlationId,replyTo)
 }
 
 
-class ServiceActor(responder: ActorRef,correlationId: String) extends Actor with ActorLogging {
+class ServiceActor(responder: ActorRef,correlationId: String,replyTo: String) extends Actor with ActorLogging {
 
   override def receive = {
     case Ping(ping) =>
-      responder ! ResponderActor.PublishReplay(correlationId,Pong("PONG: " + ping))
+      responder ! ResponderActor.PublishReplay(replyTo,correlationId,Pong("PONG: " + ping))
 
     case Echo(echo) =>
-      responder ! ResponderActor.PublishReplay(correlationId,Echo(echo))
+      responder ! ResponderActor.PublishReplay(replyTo,correlationId,Echo(echo))
 
   }
 }

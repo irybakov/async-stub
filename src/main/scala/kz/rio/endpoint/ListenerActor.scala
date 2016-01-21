@@ -46,7 +46,7 @@ class ListenerActor(amqpConnection: ActorRef, responder: ActorRef) extends Actor
 
       val command = parseCommand(msgBody)
 
-      val service = system.actorOf(ServiceActor.props(responder,d.properties.getCorrelationId()))
+      val service = system.actorOf(ServiceActor.props(responder,d.properties.getCorrelationId(),d.properties.getReplyTo))
       service ! command
 
       sender ! Ack(envelope.getDeliveryTag)
