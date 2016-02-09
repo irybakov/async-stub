@@ -7,7 +7,7 @@ import com.github.sstone.amqp.Amqp.Publish
 import com.github.sstone.amqp.{Amqp, ChannelOwner, ConnectionOwner}
 import com.rabbitmq.client.AMQP.BasicProperties
 import kz.rio.core.ServiceActor
-import kz.rio.domain.{DomainMessage, Echo, Pong}
+import kz.rio.domain.{Endpoint, DomainMessage, Echo, Pong}
 import kz.rio.endpoint.ResponderActor.PublishReplay
 import org.json4s.ShortTypeHints
 import org.json4s.native.Serialization
@@ -21,11 +21,11 @@ object ResponderActor {
 
   case class PublishReplay(replyTo: String, correlationId: String,dm: DomainMessage)
 
-  def props(amqpConnection: ActorRef): Props =  Props(classOf[ResponderActor],amqpConnection)
+  def props(amqpConnection: ActorRef,endpoint: Endpoint,outboundGate: String): Props =  Props(classOf[ResponderActor],amqpConnection,endpoint,outboundGate)
 
 }
 
-class ResponderActor(amqpConnection: ActorRef) extends Actor with ActorLogging {
+class ResponderActor(amqpConnection: ActorRef,endpoint: Endpoint,outboundGate: String) extends Actor with ActorLogging {
 
   import context._
   implicit val formats = Serialization.formats(ShortTypeHints(List(classOf[Pong],classOf[Echo])))
@@ -43,7 +43,7 @@ class ResponderActor(amqpConnection: ActorRef) extends Actor with ActorLogging {
   def publish (body: String, correlationId: String, replyTo: String)= {
 
     val props = new BasicProperties(null,null,null,1,null,correlationId,null,null,null,null,null,null,null,null)
-    producer ! Publish("amq.topic", replyTo, body.getBytes(), properties = Some(props), mandatory = true, immediate = false)
+    producer ! Publish(outboundGate, replyTo, body.getBytes(), properties = Some(props), mandatory = true, immediate = false)
     log.info("Replay {}", body)
   }
 }
